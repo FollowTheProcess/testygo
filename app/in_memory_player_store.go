@@ -4,7 +4,7 @@ import "sync"
 
 type InMemoryPlayerStore struct {
 	store map[string]int
-	mu    sync.Mutex
+	mu    sync.RWMutex
 }
 
 func (i *InMemoryPlayerStore) RecordWin(name string) {
@@ -14,10 +14,11 @@ func (i *InMemoryPlayerStore) RecordWin(name string) {
 }
 
 func (i *InMemoryPlayerStore) GetPlayerScore(name string) int {
-	// Don't need to take a lock here as concurrent map reads are ok
+	i.mu.RLock()
+	defer i.mu.RUnlock()
 	return i.store[name]
 }
 
 func NewInMemoryPlayerStore() *InMemoryPlayerStore {
-	return &InMemoryPlayerStore{map[string]int{}, sync.Mutex{}}
+	return &InMemoryPlayerStore{map[string]int{}, sync.RWMutex{}}
 }
